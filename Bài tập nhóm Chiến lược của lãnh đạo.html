@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chiến lược AI của FPT</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#FFFFFF;--ink2:#F4F6F9;--ink3:#E8EDF4;
+  --teal:#00A886;--blue:#2D7DD2;--amber:#D4900A;--pink:#D63060;--green:#2E8B57;
+  --silver:#5A6A82;--line:rgba(0,0,0,0.07);--card:rgba(0,0,0,0.03);
+  --ff:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:var(--ff);background:var(--ink);color:#0A0E1A;overflow-x:hidden}
+
+section{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:8vh 7vw}
+section+section{border-top:1px solid rgba(0,0,0,.07)}
+
+#nav{position:fixed;right:1.6rem;top:50%;transform:translateY(-50%);z-index:100;display:flex;flex-direction:column;gap:10px}
+.ndot{width:7px;height:7px;border-radius:50%;background:rgba(0,0,0,.18);cursor:pointer;transition:background .2s,transform .2s}
+.ndot:hover{background:rgba(0,0,0,.35);transform:scale(1.4)}
+.ndot.on{background:var(--teal);transform:scale(1.15)}
+
+.snum{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#5A6A82;margin-bottom:2.5rem;display:flex;align-items:center;gap:10px}
+.snum::before{content:'';width:28px;height:1px;background:var(--teal)}
+.stitle{font-size:clamp(2rem,3.2vw,3rem);font-weight:700;letter-spacing:-.025em;line-height:1.08;margin-bottom:2.5rem;color:#0A0E1A}
+.stitle span{color:var(--teal)}
+.stitle .am{color:var(--amber)}
+
+.rv{opacity:0;transform:translateY(20px);transition:opacity .65s cubic-bezier(.22,1,.36,1),transform .65s cubic-bezier(.22,1,.36,1)}
+.rv.in{opacity:1;transform:none}
+.d1{transition-delay:.1s}.d2{transition-delay:.22s}.d3{transition-delay:.38s}.d4{transition-delay:.52s}
+
+/* SLIDE 1 */
+#s1{padding-top:14vh;padding-bottom:10vh}
+.kicker{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(0,168,134,.35);border-radius:3px;padding:5px 14px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:2.5rem;width:fit-content}
+.kd{width:6px;height:6px;background:var(--teal);border-radius:50%;animation:blink 2s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.hero-h{font-size:clamp(3.2rem,7.5vw,8rem);font-weight:800;letter-spacing:-.04em;line-height:.92;margin-bottom:2.25rem;color:#0A0E1A}
+.hero-h em{font-style:normal;color:var(--teal)}
+.hero-sub{font-size:clamp(.95rem,1.35vw,1.15rem);font-weight:300;color:rgba(0,0,0,.5);max-width:540px;line-height:1.75;margin-bottom:3.5rem}
+.hmeta{display:flex;border:1px solid rgba(0,0,0,.1);border-radius:4px;overflow:hidden;width:fit-content}
+.hmi{padding:14px 24px;border-right:1px solid rgba(0,0,0,.08);font-size:11.5px;color:#5A6A82}
+.hmi:last-child{border-right:none}
+.hmi strong{display:block;font-size:14px;font-weight:600;color:#0A0E1A;margin-bottom:3px}
+.hero-q{position:absolute;right:7vw;bottom:9vh;max-width:340px;border-left:2px solid var(--teal);padding-left:18px}
+.hero-q p{font-size:12.5px;font-style:italic;color:rgba(0,0,0,.45);line-height:1.7;margin-bottom:8px}
+.hero-q cite{font-size:11px;color:#5A6A82;letter-spacing:.07em;text-transform:uppercase;font-style:normal}
+.scroll-h{position:absolute;bottom:3rem;left:7vw;display:flex;align-items:center;gap:9px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#5A6A82}
+.scroll-arr{width:18px;height:18px;border:1px solid rgba(0,0,0,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;animation:bob 2s ease infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+
+/* SLIDE 2 */
+.srow{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.08);border-radius:6px;overflow:hidden;margin-bottom:3rem}
+.stat{background:var(--ink2);padding:2rem 1.75rem;position:relative;transition:background .25s}
+.stat:hover{background:var(--ink3)}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.stat:nth-child(1)::before{background:var(--teal)}
+.stat:nth-child(2)::before{background:var(--amber)}
+.stat:nth-child(3)::before{background:var(--blue)}
+.sv{font-size:clamp(1.8rem,3.2vw,3.2rem);font-weight:800;letter-spacing:-.03em;line-height:1;margin-bottom:.6rem}
+.stat:nth-child(1) .sv{color:var(--teal)}
+.stat:nth-child(2) .sv{color:var(--amber)}
+.stat:nth-child(3) .sv{color:var(--blue)}
+.sl{font-size:12px;color:#5A6A82;line-height:1.5;font-weight:300}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:3.5rem}
+.col-h{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#5A6A82;margin-bottom:1rem}
+.pts{display:flex;flex-direction:column}
+.pt{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid rgba(0,0,0,.08);font-size:13.5px;color:rgba(0,0,0,.65);line-height:1.5;transition:color .2s}
+.pt:hover{color:#0A0E1A}
+.pt:last-child{border-bottom:none}
+.psq{flex-shrink:0;width:16px;height:16px;border-radius:2px;margin-top:1px}
+
+/* SLIDES 3 & 4 */
+.swot-g{display:grid;grid-template-columns:1fr 1fr;gap:1.75rem}
+.sblock{border:1px solid rgba(0,0,0,.1);border-radius:8px;overflow:hidden}
+.sblock-h{padding:.9rem 1.4rem;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(0,0,0,.08);background:rgba(0,0,0,.03)}
+.stag{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:2px}
+.sblock-h h3{font-size:15px;font-weight:600}
+.sitems{padding:.4rem 0}
+.si{display:grid;grid-template-columns:8px 1fr;gap:13px;align-items:start;padding:11px 1.4rem;border-bottom:1px solid rgba(0,0,0,.07);transition:background .18s}
+.si:last-child{border-bottom:none}
+.si:hover{background:rgba(0,0,0,.03)}
+.si-dot{width:8px;height:8px;border-radius:50%;margin-top:4px}
+.si-t b{display:block;font-size:13px;font-weight:500;color:#0A0E1A;margin-bottom:2px}
+.si-t small{font-size:11.5px;color:#5A6A82;font-weight:300}
+
+/* SLIDE 5 — BENTO GRID */
+.bento{display:grid;grid-template-columns:1.6fr 1fr 1fr;grid-template-rows:auto auto;gap:1.1rem}
+.ac{border:1px solid rgba(0,0,0,.1);border-radius:8px;background:var(--card);overflow:hidden;cursor:pointer;transition:border-color .25s,background .25s,transform .2s;position:relative}
+.ac:hover{background:rgba(0,0,0,.06);transform:translateY(-2px)}
+.ac.open{border-color:rgba(255,255,255,.2)}
+.ac-bar{position:absolute;top:0;left:0;right:0;height:2px}
+.ac-tog{display:flex;align-items:center;gap:6px;padding:.7rem 1.5rem;border-top:1px solid rgba(0,0,0,.08);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--silver);transition:color .2s;user-select:none}
+.ac:hover .ac-tog{color:#0A0E1A}
+.ac-tog svg{transition:transform .3s}
+.ac.open .ac-tog svg{transform:rotate(180deg)}
+.ac-detail{max-height:0;overflow:hidden;transition:max-height .42s cubic-bezier(.22,1,.36,1)}
+.ac.open .ac-detail{max-height:700px}
+.ac-di{padding:1.25rem 1.5rem;border-top:1px solid rgba(0,0,0,.08);display:flex;flex-direction:column;gap:.65rem}
+.ac-sub{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#5A6A82;margin-bottom:.1rem}
+.ac-why{padding:.75rem 1rem;background:rgba(0,0,0,.03);border-radius:4px;font-size:12px;color:rgba(0,0,0,.45);line-height:1.65;font-style:italic;border-left:2px solid}
+.ac-row{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:rgba(0,0,0,.65);line-height:1.55}
+.ac-row::before{content:'→';flex-shrink:0;font-size:11px;margin-top:2px;color:#5A6A82}
+
+/* SLIDE 6 */
+.ceye{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);margin-bottom:2rem;display:flex;align-items:center;gap:10px}
+.ceye::after{content:'';flex:1;height:1px;background:rgba(0,0,0,.1);max-width:180px}
+.ctitle{font-size:clamp(2rem,3.8vw,4.2rem);font-weight:800;letter-spacing:-.035em;line-height:1.05;margin-bottom:3rem;max-width:780px;color:#0A0E1A}
+.ctitle .gr{color:var(--teal)}
+.cpts{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.08);border-radius:6px;overflow:hidden;max-width:860px;margin-bottom:3rem}
+.cpt{background:var(--ink2);padding:1.4rem 1.75rem;display:flex;gap:14px;align-items:flex-start;transition:background .2s}
+.cpt:hover{background:var(--ink3)}
+.cpa{color:var(--teal);font-weight:700;font-size:15px;flex-shrink:0;margin-top:1px}
+.cpt-t{font-size:13.5px;color:rgba(0,0,0,.65);line-height:1.6;font-weight:300}
+.cfoot{font-size:12px;color:#5A6A82;border-top:1px solid rgba(0,0,0,.08);padding-top:1.5rem}
+.cfoot strong{color:var(--teal)}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div class="ndot on" data-t="s1"></div>
+  <div class="ndot" data-t="s2"></div>
+  <div class="ndot" data-t="s3"></div>
+  <div class="ndot" data-t="s4"></div>
+  <div class="ndot" data-t="s5"></div>
+  <div class="ndot" data-t="s6"></div>
+</nav>
+
+<!-- S1 HERO -->
+<section id="s1">
+  <div class="kicker rv"><div class="kd"></div>MiniMBA FPT 2026 &middot; Chiến lược &amp; Lãnh đạo</div>
+  <h1 class="hero-h rv d1">Chiến lược<br><em>AI</em> của FPT</h1>
+  <p class="hero-sub rv d2">Phân tích SWOT và gợi ý thực thi cho định hướng lấy AI làm trọng tâm, dẫn dắt chiến lược 2024–2027.</p>
+  <div class="hmeta rv d3">
+    <div class="hmi"><strong>2024-2027</strong>Giai đoạn chiến lược</div>
+    <div class="hmi"><strong>5 định hướng</strong>AI &middot; Bán dẫn &middot; Xe &middot; So &middot; Xanh</div>
+    <div class="hmi"><strong>Top 50</strong>Mục tiêu toàn cầu 2030</div>
+  </div>
+  <div class="hero-q rv d4">
+    <p>"AI là chiến lược trọng tâm và dẫn dắt trong 5 định hướng AI – Bán dẫn – Xe số – Chuyển đổi số – Chuyển đổi xanh"</p>
+    <cite>Báo cáo thường niên FPT 2024</cite>
+  </div>
+  <div class="scroll-h"><div class="scroll-arr">&#8595;</div>Kéo xuống</div>
+</section>
+
+<!-- S2 BOI CANH -->
+<section id="s2">
+  <div class="snum rv">02 / Bối cảnh</div>
+  <h2 class="stitle rv d1">Cuộc đua AI toàn cầu<br>và <span>vị thế của FPT</span></h2>
+  <div class="srow rv d2">
+    <div class="stat"><div class="sv">$1,800 ty</div><div class="sl">Thị trường AI toàn cầu<br>dự kiến đến năm 2030</div></div>
+    <div class="stat"><div class="sv">37%</div><div class="sl">CAGR tăng trưởng AI<br>hằng năm đến 2030</div></div>
+    <div class="stat"><div class="sv">40.000+</div><div class="sl">Kỹ sư công nghệ FPT<br>tại 30+ quốc gia</div></div>
+  </div>
+  <div class="two-col rv d3">
+    <div>
+      <div class="col-h">Xu hướng thị trường</div>
+      <div class="pts">
+        <div class="pt"><div class="psq" style="background:rgba(57,245,200,.15);border:1px solid rgba(57,245,200,.3)"></div>Nhu cầu AI trong bán dẫn &amp; ô tô số bùng nổ sau 2023</div>
+        <div class="pt"><div class="psq" style="background:rgba(57,245,200,.15);border:1px solid rgba(57,245,200,.3)"></div>Chính phủ Việt Nam ưu tiên chiến lược AI quốc gia</div>
+        <div class="pt"><div class="psq" style="background:rgba(57,245,200,.15);border:1px solid rgba(57,245,200,.3)"></div>Làn sóng outsourcing AI từ Nhật Bản, Mỹ, EU tăng mạnh</div>
+      </div>
+    </div>
+    <div>
+      <div class="col-h">Nội lực FPT</div>
+      <div class="pts">
+        <div class="pt"><div class="psq" style="background:rgba(255,209,102,.15);border:1px solid rgba(255,209,102,.3)"></div>Quan hệ chiến lược với NVIDIA, Microsoft, AWS, Google</div>
+        <div class="pt"><div class="psq" style="background:rgba(255,209,102,.15);border:1px solid rgba(255,209,102,.3)"></div>Nền tảng FPT.AI + dữ liệu tiếng Việt độc quyền</div>
+        <div class="pt"><div class="psq" style="background:rgba(255,209,102,.15);border:1px solid rgba(255,209,102,.3)"></div>Doanh thu ~2,8 tỷ USD (2024) – nền tài chính vững</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S3 DIEM MANH & CO HOI -->
+<section id="s3">
+  <div class="snum rv">03 / SWOT</div>
+  <h2 class="stitle rv d1">Điểm mạnh &amp; <span>Cơ hội</span><br><small style="font-size:.42em;font-weight:300;color:var(--silver);letter-spacing:0">Nền tảng để tăng trưởng</small></h2>
+  <div class="swot-g rv d2">
+    <div class="sblock">
+      <div class="sblock-h"><div class="stag" style="background:rgba(57,245,200,.14);color:var(--teal)">S</div><h3>Điểm mạnh</h3></div>
+      <div class="sitems">
+        <div class="si"><div class="si-dot" style="background:var(--teal)"></div><div class="si-t"><b>Hệ sinh thái công nghệ toàn diện</b><small>40.000+ kỹ sư, FPT Software, Telecom, Education</small></div></div>
+        <div class="si"><div class="si-dot" style="background:var(--teal)"></div><div class="si-t"><b>Mạng lưới khách hàng quốc tế</b><small>1.000+ khách hàng tại 30+ quốc gia</small></div></div>
+        <div class="si"><div class="si-dot" style="background:var(--teal)"></div><div class="si-t"><b>Nền tảng FPT.AI &amp; dữ liệu tiếng Việt</b><small>Tài sản dữ liệu độc quyền không ai có</small></div></div>
+        <div class="si"><div class="si-dot" style="background:var(--teal)"></div><div class="si-t"><b>Đối tác chiến lược hàng đầu</b><small>NVIDIA, Microsoft, AWS, Google Cloud</small></div></div>
+        <div class="si"><div class="si-dot" style="background:var(--teal)"></div><div class="si-t"><b>Tài chính vững mạnh</b><small>Doanh thu ~2,8 tỷ USD (2024)</small></div></div>
+      </div>
+    </div>
+    <div class="sblock">
+      <div class="sblock-h"><div class="stag" style="background:rgba(126,184,255,.14);color:var(--blue)">O</div><h3>Cơ hội</h3></div>
+      <div class="sitems">
+        <div class="si"><div class="si-dot" style="background:var(--blue)"></div><div class="si-t"><b>Thị trường AI toàn cầu</b><small>$1.800 tỷ USD vào 2030, CAGR ~37%</small></div></div>
+        <div class="si"><div class="si-dot" style="background:var(--blue)"></div><div class="si-t"><b>AI trong bán dẫn &amp; ô tô số</b><small>Xu hướng bùng nổ sau 2024, nhu cầu khổng lồ</small></div></div>
+        <div class="si"><div class="si-dot" style="background:var(--blue)"></div><div class="si-t"><b>Chính sách AI quốc gia Việt Nam</b><small>Ưu tiên phát triển hạ tầng và nhân lực AI</small></div></div>
+        <div class="si"><div class="si-dot" style="background:var(--blue)"></div><div class="si-t"><b>Outsourcing AI từ Nhật/Mỹ/EU</b><small>Làn sóng nhu cầu đang tăng mạnh</small></div></div>
+        <div class="si"><div class="si-dot" style="background:var(--blue)"></div><div class="si-t"><b>AI trong giáo dục &amp; y tế</b><small>200M+ sinh viên &amp; bệnh nhân tiềm năng</small></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S4 DIEM YEU & THACH THUC -->
+<section id="s4">
+  <div class="snum rv">04 / SWOT</div>
+  <h2 class="stitle rv d1">Điểm yếu &amp; <span class="am">Thách thức</span><br><small style="font-size:.42em;font-weight:300;color:var(--silver);letter-spacing:0">Rủi ro cần kiểm soát</small></h2>
+  <div class="swot-g rv d2">
+    <div class="sblock">
+      <div class="sblock-h"><div class="stag" style="background:rgba(255,209,102,.14);color:var(--amber)">W</div><h3>Điểm yếu</h3></div>
+      <div class="sitems">
+        <div class="si"><div class="si-dot" style="background:var(--amber)"></div><div class="si-t"><b>Thiếu AI foundation model nội địa</b><small>Chưa có LLM riêng, phụ thuộc OpenAI/Azure</small></div></div>
+        <div class="si"><div class="si-dot" style="background:var(--amber)"></div><div class="si-t"><b>Nhân tài AI cấp cao còn hạn chế</b><small>Senior AI engineers ít hơn Big Tech</small></div></div>
+        <div class="si"><div class="si-dot" style="background:var(--amber)"></div><div class="si-t"><b>Hạ tầng GPU/Compute chưa đủ quy mô</b><small>Chưa đủ để train large model độc lập</small></div></div>
+        <div class="si"><div class="si-dot" style="background:var(--amber)"></div><div class="si-t"><b>Phụ thuộc nền tảng nước ngoài</b><small>OpenAI, Google Cloud, Microsoft Azure</small></div></div>
+        <div class="si"><div class="si-dot" style="background:var(--amber)"></div><div class="si-t"><b>Tốc độ ra sản phẩm còn chậm</b><small>Time-to-market chưa cạnh tranh được</small></div></div>
+      </div>
+    </div>
+    <div class="sblock">
+      <div class="sblock-h"><div class="stag" style="background:rgba(255,143,171,.14);color:var(--pink)">T</div><h3>Thách thức</h3></div>
+      <div class="sitems">
+        <div class="si"><div class="si-dot" style="background:var(--pink)"></div><div class="si-t"><b>Cạnh tranh từ Big Tech &amp; Global IT</b><small>Accenture, TCS, Infosys, Google, Microsoft</small></div></div>
+        <div class="si"><div class="si-dot" style="background:var(--pink)"></div><div class="si-t"><b>Rủi ro bảo mật &amp; đạo đức AI</b><small>Ngày càng nghiêm trọng và phức tạp</small></div></div>
+        <div class="si"><div class="si-dot" style="background:var(--pink)"></div><div class="si-t"><b>Quy định pháp lý AI toàn cầu</b><small>EU AI Act thắt chặt từ 2024–2026</small></div></div>
+        <div class="si"><div class="si-dot" style="background:var(--pink)"></div><div class="si-t"><b>AI war for talent</b><small>Nhân tài bị Big Tech thu hút liên tục</small></div></div>
+        <div class="si"><div class="si-dot" style="background:var(--pink)"></div><div class="si-t"><b>Chu kỳ đổi mới cực nhanh</b><small>Khó duy trì lợi thế cạnh tranh dài hạn</small></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S5 THUC THI — BENTO GRID -->
+<section id="s5">
+  <div class="snum rv">05 / Thực thi</div>
+  <h2 class="stitle rv d1">5 Gợi ý <span>thực thi</span> chiến lược AI<br><small style="font-size:.38em;font-weight:300;color:var(--silver);letter-spacing:0">Nhấn vào mỗi thẻ để xem chi tiết</small></h2>
+
+  <div class="bento rv d2">
+
+    <!-- 01 BIG LEFT -->
+    <div class="ac" style="grid-row:span 2" onclick="tog(this)">
+      <div class="ac-bar" style="background:var(--teal)"></div>
+      <div style="padding:2rem 2rem 1.5rem">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem">
+          <div style="color:var(--teal);font-size:3rem;font-weight:800;letter-spacing:-.04em;line-height:1">01</div>
+          <span style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);border:1px solid rgba(0,168,134,.35);padding:3px 9px;border-radius:2px;margin-top:4px">Ưu tiên cao nhất</span>
+        </div>
+        <div style="font-size:18px;font-weight:600;color:#0A0E1A;line-height:1.3;margin-bottom:.75rem">Vertical AI<br>Tập trung ngành dọc</div>
+        <div style="font-size:13px;color:#4A5568;line-height:1.6;font-weight:300">Xây AI chuyên biệt cho y tế, tài chính, sản xuất tại Nhật &amp; Đông Nam Á – nơi FPT có lợi thế ngôn ngữ và văn hóa mà Big Tech không thể sao chép.</div>
+      </div>
+      <div class="ac-tog"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Chi tiết</div>
+      <div class="ac-detail"><div class="ac-di">
+        <div class="ac-sub" style="color:var(--teal)">Tại sao?</div>
+        <div class="ac-why" style="border-color:var(--teal)">FPT không thể thắng GPT-4 hay Gemini trên sân AI nền tảng. Nhưng AI cho bác sĩ Việt, kế toán Nhật, kỹ sư nhà máy ASEAN – đó là thị trường FPT có thể dẫn đầu.</div>
+        <div class="ac-sub" style="color:var(--teal)">Hành động cụ thể</div>
+        <div class="ac-row">Ưu tiên 3 ngành: Y tế (chẩn đoán AI tiếng Việt), Tài chính (fraud detection), Sản xuất (predictive maintenance)</div>
+        <div class="ac-row">Xây AI domain expert team riêng – kết hợp kỹ sư AI và chuyên gia ngành</div>
+        <div class="ac-row">Bán theo outcome (tiết kiệm X%, giảm Y lỗi) thay vì bán license phần mềm</div>
+        <div class="ac-row">Mục tiêu 2027: 3 sản phẩm AI ngành dọc đạt doanh thu &gt;$50M mỗi sản phẩm</div>
+      </div></div>
+    </div>
+
+    <!-- 02 TOP MID -->
+    <div class="ac" onclick="tog(this)">
+      <div class="ac-bar" style="background:var(--blue)"></div>
+      <div style="padding:1.5rem">
+        <div style="color:var(--blue);font-size:1.8rem;font-weight:800;letter-spacing:-.04em;margin-bottom:.7rem">02</div>
+        <div style="font-size:13.5px;font-weight:600;color:#0A0E1A;line-height:1.35">AI Talent Pipeline từ FPT Education</div>
+        <div style="font-size:12px;color:var(--silver);line-height:1.55;margin-top:.4rem;font-weight:300">Đào tạo 5.000 AI engineer/năm – pipeline nhân tài độc nhất.</div>
+      </div>
+      <div class="ac-tog"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Chi tiết</div>
+      <div class="ac-detail"><div class="ac-di">
+        <div class="ac-sub" style="color:var(--blue)">Lợi thế độc đáo</div>
+        <div class="ac-why" style="border-color:var(--blue)">Không đối thủ nào có pipeline nhân tài khép kín từ đào tạo đến thực chiến như FPT. Đây là hào cạnh tranh bền vững nhất trong AI war for talent.</div>
+        <div class="ac-sub" style="color:var(--blue)">Hành động cụ thể</div>
+        <div class="ac-row">AI Fast-Track 18 tháng: học AI kết hợp thực tập ngay tại dự án FPT thật</div>
+        <div class="ac-row">Học bổng AI Excellence: Top 200 sinh viên/năm học miễn phí đổi 2 năm làm việc tại FPT</div>
+        <div class="ac-row">AI Research Lab nội bộ thu hút giảng viên, nghiên cứu sinh tiến sĩ cộng tác</div>
+        <div class="ac-row">KPI: 5.000 AI-certified engineer vào 2026, 500 AI senior specialist vào 2027</div>
+      </div></div>
+    </div>
+
+    <!-- 03 TOP RIGHT -->
+    <div class="ac" onclick="tog(this)">
+      <div class="ac-bar" style="background:var(--amber)"></div>
+      <div style="padding:1.5rem">
+        <div style="color:var(--amber);font-size:1.8rem;font-weight:800;letter-spacing:-.04em;margin-bottom:.7rem">03</div>
+        <div style="font-size:13.5px;font-weight:600;color:#0A0E1A;line-height:1.35">AI Governance &amp; Ethics</div>
+        <div style="font-size:12px;color:var(--silver);line-height:1.55;margin-top:.4rem;font-weight:300">Khung quản trị AI – biến compliance thành lợi thế bán hàng.</div>
+      </div>
+      <div class="ac-tog"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Chi tiết</div>
+      <div class="ac-detail"><div class="ac-di">
+        <div class="ac-sub" style="color:var(--amber)">Tại sao cấp thiết?</div>
+        <div class="ac-why" style="border-color:var(--amber)">EU AI Act, PDPA và các quy định AI siết mạnh từ 2025. Không có governance framework sẽ mất hợp đồng tại Nhật, EU. FPT cần đi trước.</div>
+        <div class="ac-sub" style="color:var(--amber)">Hành động cụ thể</div>
+        <div class="ac-row">Thành lập AI Ethics Board gồm chuyên gia pháp lý, kỹ thuật, đại diện khách hàng</div>
+        <div class="ac-row">Ban hành FPT AI Policy: quy định rõ dữ liệu nào được dùng train, ai có quyền truy cập</div>
+        <div class="ac-row">Đạt chứng chỉ ISO 42001 và SOC 2 Type II trước Q2/2025</div>
+        <div class="ac-row">Xuất bản FPT AI Transparency Report hằng năm – công bố công khai với thị trường</div>
+      </div></div>
+    </div>
+
+    <!-- 04 BOT MID -->
+    <div class="ac" onclick="tog(this)">
+      <div class="ac-bar" style="background:var(--pink)"></div>
+      <div style="padding:1.5rem">
+        <div style="color:var(--pink);font-size:1.8rem;font-weight:800;letter-spacing:-.04em;margin-bottom:.7rem">04</div>
+        <div style="font-size:13.5px;font-weight:600;color:#0A0E1A;line-height:1.35">Mở rộng AI-as-a-Service</div>
+        <div style="font-size:12px;color:var(--silver);line-height:1.55;margin-top:.4rem;font-weight:300">SaaS AI cho 700.000+ SME Việt Nam, doanh thu recurring.</div>
+      </div>
+      <div class="ac-tog"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Chi tiết</div>
+      <div class="ac-detail"><div class="ac-di">
+        <div class="ac-sub" style="color:var(--pink)">Cơ hội bo ngo</div>
+        <div class="ac-why" style="border-color:var(--pink)">98% DN Việt Nam là SME nhưng không đủ ngân sách thuê tư vấn AI lớn. FPT có thể chiếm thị trường này với SaaS giá phải chăng – scale không giới hạn.</div>
+        <div class="ac-sub" style="color:var(--pink)">Hành động cụ thể</div>
+        <div class="ac-row">FPT AI Studio: platform self-serve để SME tự xây chatbot, phân tích dữ liệu không cần kỹ sư</div>
+        <div class="ac-row">Freemium: dùng miễn phí giới hạn, trả phí từ $99/tháng cho tính năng nâng cao</div>
+        <div class="ac-row">Tích hợp sẵn vào hệ sinh thái FPT: kế toán, ERP, CRM – giảm ma sát onboarding</div>
+        <div class="ac-row">Mục tiêu 2026: 10.000 SME dùng, ARR đạt $30M từ mảng AIaaS</div>
+      </div></div>
+    </div>
+
+    <!-- 05 BOT RIGHT -->
+    <div class="ac" onclick="tog(this)">
+      <div class="ac-bar" style="background:var(--green)"></div>
+      <div style="padding:1.5rem">
+        <div style="color:var(--green);font-size:1.8rem;font-weight:800;letter-spacing:-.04em;margin-bottom:.7rem">05</div>
+        <div style="font-size:13.5px;font-weight:600;color:#0A0E1A;line-height:1.35">Xây dựng niềm tin qua minh bạch dữ liệu</div>
+        <div style="font-size:12px;color:var(--silver);line-height:1.55;margin-top:.4rem;font-weight:300">AI Trust Charter &amp; bảo mật – lợi thế cạnh tranh châu Á.</div>
+      </div>
+      <div class="ac-tog"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Chi tiết</div>
+      <div class="ac-detail"><div class="ac-di">
+        <div class="ac-sub" style="color:var(--green)">Bối cảnh</div>
+        <div class="ac-why" style="border-color:var(--green)">72% CISO DN châu Á từ chối AI vendor do lo ngại data leak (McKinsey 2024). FPT cần biến trust thành vũ khí bán hàng thay vì rào cản.</div>
+        <div class="ac-sub" style="color:var(--green)">Hành động cụ thể</div>
+        <div class="ac-row">Ra mắt FPT AI Trust Charter – cam kết công khai về xử lý dữ liệu khách hàng</div>
+        <div class="ac-row">Data Sovereignty Option: khách hàng chọn deploy on-premise hoặc private cloud</div>
+        <div class="ac-row">Công bố AI Incident Report hằng quý – minh bạch về lỗi, giới hạn, cải tiến</div>
+        <div class="ac-row">Dẫn đầu tiêu chuẩn AI Ethics tại Đông Nam Á – thị trường chưa ai chiếm</div>
+      </div></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- S6 KET LUAN -->
+<section id="s6">
+  <div class="ceye rv">Kết luận</div>
+  <h2 class="ctitle rv d1">FPT đang ở<br><span class="gr">đúng thời điểm,<br>đúng vị trí</span><br>để dẫn đầu AI tại châu Á.</h2>
+  <div class="cpts rv d2">
+    <div class="cpt"><div class="cpa">&#8594;</div><div class="cpt-t">Không cạnh tranh với Big Tech trên AI nền tảng – tập trung vào AI ứng dụng ngành dọc</div></div>
+    <div class="cpt"><div class="cpa">&#8594;</div><div class="cpt-t">Lợi thế am hiểu châu Á, ngôn ngữ địa phương là hào cạnh tranh bền vững nhất</div></div>
+    <div class="cpt"><div class="cpa">&#8594;</div><div class="cpt-t">Hệ sinh thái 40.000+ kỹ sư + FPT Education = pipeline nhân tài AI độc nhất</div></div>
+    <div class="cpt"><div class="cpa">&#8594;</div><div class="cpt-t">Tốc độ triển khai và niềm tin khách hàng là yếu tố quyết định thắng bại</div></div>
+  </div>
+  <div class="cfoot rv d3"><strong>FPT</strong> &middot; MiniMBA 2026 &middot; Nhom phan tich Chiến lược &amp; Lãnh đạo</div>
+</section>
+
+<script>
+function tog(el) {
+  var isOpen = el.classList.contains('open');
+  document.querySelectorAll('.ac.open').forEach(function(a) { a.classList.remove('open'); });
+  if (!isOpen) el.classList.add('open');
+}
+
+var dots = document.querySelectorAll('.ndot');
+dots.forEach(function(d) {
+  d.addEventListener('click', function() {
+    document.getElementById(d.dataset.t).scrollIntoView({ behavior: 'smooth' });
+  });
+});
+
+var rio = new IntersectionObserver(function(entries) {
+  entries.forEach(function(x) {
+    if (x.isIntersecting) { x.target.classList.add('in'); rio.unobserve(x.target); }
+  });
+}, { threshold: 0.12 });
+document.querySelectorAll('.rv').forEach(function(el) { rio.observe(el); });
+
+var secs = document.querySelectorAll('section');
+var nio = new IntersectionObserver(function(entries) {
+  entries.forEach(function(x) {
+    if (x.isIntersecting) {
+      dots.forEach(function(d) { d.classList.remove('on'); });
+      var d = document.querySelector('.ndot[data-t="' + x.target.id + '"]');
+      if (d) d.classList.add('on');
+    }
+  });
+}, { threshold: 0.45 });
+secs.forEach(function(s) { nio.observe(s); });
+</script>
+</body>
+</html>
